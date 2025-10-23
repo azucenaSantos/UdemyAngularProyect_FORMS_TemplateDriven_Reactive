@@ -1,76 +1,102 @@
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
 import {
-  afterNextRender,
-  Component,
-  DestroyRef,
-  inject,
-  viewChild,
-} from '@angular/core';
-import { FormsModule, NgForm } from '@angular/forms';
-import { debounceTime } from 'rxjs';
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
+import { debounceTime, of } from 'rxjs';
 
+//Funcion que va actuar como validador de la contraseña
+function mustContainQuestionMark(control: AbstractControl) {
+  if (control.value.includes('?')) {
+    return null; //control válido
+  }
+  //Si no es válido
+  return { doesNotContainQuestionMark: true }; //devuelve error-objeto con propiedad true
+}
+
+//Funcion para asyncvalidatoris
+function emailIsUnique(control: AbstractControl) {
+  if (control.value !== 'text@example.com') {
+    return of(null);
+    //of produce un observable que emite un valor
+  }
+
+  return of({ notUniqueEmail: true });
+  //observable en caso de que sea igual
+}
 @Component({
   selector: 'app-login',
   standalone: true,
-  //añadimos imports para poder usar ngModel -> necesitamos el FormsModule
-  imports: [FormsModule],
+  imports: [ReactiveFormsModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
 })
-export class LoginComponent {
-  //¿Cómo accedemos a los valores del formulario?
-
-  private form = viewChild.required<NgForm>('form'); //obtenemos el objeto del dom con este nombre de variable
+export class LoginComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
-  constructor() {
-    afterNextRender(() => {
-      const savedForm = window.localStorage.getItem('saved-loging-form');
+  //FormGroup es un objeto
+  form = new FormGroup({
+    //registrar clave-valor que representan a cada control del formulario o FormGroup anidado
+    email: new FormControl('', {
+      validators: [Validators.required, Validators.email],
+      asyncValidators: [emailIsUnique],
+      //los asyncs tiene la diferencia de los validators que siempre tienen que devolver un observable
+    }),
+    password: new FormControl('', {
+      validators: [
+        Validators.required,
+        Validators.minLength(6),
+        mustContainQuestionMark,
+      ],
+    }),
+  }); //hemos creado un FormGroup y ahora debemos enlazarlo a la template
 
-      if (savedForm) {
-        const loadedFormData = JSON.parse(savedForm);
-        const savedEmail = loadedFormData.email;
-        //Retraso de 1 segundo para evitar el error de acceder a email cuando no tenemos ese control aun en el componente
-        setTimeout(() => {
-          //this.form().setValue({ email: savedEmail, password: '' });
-          this.form().controls['email'].setValue(savedEmail); //podemos asociar de 2 formas, directamente al control
-          //o pasando al setValue un objeto con los valores de cada uno de los inputs del form
-        }, 1);
-      }
-
-      //valueChanges es un observable de angular
-      //que va a emitir nuevos valores cada vez que los valores introducidos en el usuario cambien
-      const suscription = this.form()
-        .valueChanges?.pipe(debounceTime(500))
-        .subscribe({
-          next: (value) => {
-            //guardar valores en el localstorage de mi pc
-            window.localStorage.setItem(
-              'saved-loging-form',
-              JSON.stringify({ email: value.email })
-            );
-            //Guardamos como un objeto el email. tiene que estar en formato JSON y lo guardamos
-            //en el localStorage con el key 'saved-login-form'
-            //con el debounceTime-> guardamos datos cada 500 milisegundos
-          },
-        });
-      this.destroyRef.onDestroy(() => suscription?.unsubscribe());
-    });
+  get emailIsInvalid() {
+    return (
+      this.form.controls.email.touched &&
+      this.form.controls.email.dirty &&
+      this.form.controls.email.invalid
+    );
   }
-  onSubmit(formData: NgForm) {
-    //NgForm-> tipo de dato que va a dar el formulario con el #form
-    //console.log(formData); --> todo el contenido del objeto NgForm
 
-    if (formData.form.invalid) {
-      return; //si es inválido no se muestran los console.log
+  get passwordIsValid() {
+    return (
+      this.form.controls.password.touched &&
+      this.form.controls.password.dirty &&
+      this.form.controls.password.invalid
+    );
+  }
+
+  ngOnInit() {
+    const savedForm = window.localStorage.getItem('saved-loging-info');
+    if (savedForm) {
+      const loadedForm = JSON.parse(savedForm);
+      //this.form.patchValue(loadedForm); //updated un form que sea reactive con esta funcion
+      this.form.patchValue({
+        email: loadedForm.email,
+      }); //o podemos solo updatear una parte en concreto del form
     }
 
-    //Extraer valores de los inputs
-    const enteredEmail = formData.form.value.email;
-    const enteredPassword = formData.form.value.password;
-    console.log(enteredEmail, enteredPassword);
+    const suscription = this.form.valueChanges
+      .pipe(debounceTime(500))
+      .subscribe({
+        next: (value) => {
+          window.localStorage.setItem(
+            'saved-loging-info',
+            JSON.stringify({ email: value.email })
+          );
+        },
+      });
+    this.destroyRef.onDestroy(() => suscription.unsubscribe());
+  }
 
-    //Cuando "enviamos", reseteamos los valores de los inputs
-    //y restablece toda la informacion interna del formulario (dirty, touched...)
-    formData.form.reset();
+  onSubmit() {
+    console.log(this.form);
+    const enteredEmail = this.form.value.email;
+    const enteredPassword = this.form.value.password;
+    console.log(enteredEmail, enteredPassword);
   }
 }

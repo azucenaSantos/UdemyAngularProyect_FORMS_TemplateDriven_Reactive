@@ -1,10 +1,15 @@
-<form>
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
   <h2>Welcome on board!</h2>
   <p>We just need a little bit of data from you to get you started 🚀</p>
 
   <div class="control">
     <label for="email">Email</label>
-    <input id="email" type="email" name="email" />
+    <input
+      id="email"
+      type="email"
+      name="email"
+      [formControl]="form.controls.email"
+    />
   </div>
 
   <div class="control-row">
@@ -14,6 +19,7 @@
         id="password"
         type="password"
         name="password"
+        [formControl]="form.controls.password"
       />
     </div>
 
@@ -23,6 +29,7 @@
         id="confirm-password"
         type="password"
         name="confirm-password"
+        [formControl]="form.controls.confirmPassword"
       />
     </div>
   </div>
@@ -37,6 +44,7 @@
           type="text"
           id="first-name"
           name="first-name"
+          [formControl]="form.controls.firstName"
         />
       </div>
 
@@ -46,6 +54,7 @@
           type="text"
           id="last-name"
           name="last-name"
+          [formControl]="form.controls.lastName"
         />
       </div>
     </div>
@@ -56,24 +65,44 @@
       <div class="control-row">
         <div class="control">
           <label for="street">Street</label>
-          <input type="text" id="street" name="street" />
+          <input
+            type="text"
+            id="street"
+            name="street"
+            [formControl]="form.controls.street"
+          />
         </div>
 
         <div class="control">
           <label for="number">Number</label>
-          <input type="text" id="number" name="number" />
+          <input
+            type="text"
+            id="number"
+            name="number"
+            [formControl]="form.controls.number"
+          />
         </div>
       </div>
 
       <div class="control-row">
         <div class="control">
           <label for="postal-code">Postal Code</label>
-          <input type="text" id="postal-code" name="postal-code" />
+          <input
+            type="text"
+            id="postal-code"
+            name="postal-code"
+            [formControl]="form.controls.postalCode"
+          />
         </div>
 
         <div class="control">
           <label for="city">City</label>
-          <input type="text" id="city" name="city" />
+          <input
+            type="text"
+            id="city"
+            name="city"
+            [formControl]="form.controls.city"
+          />
         </div>
       </div>
     </fieldset>
@@ -84,7 +113,7 @@
   <div class="control-row">
     <div class="control">
       <label for="role">What best describes your role?</label>
-      <select id="role" name="role">
+      <select id="role" name="role" [formControl]="form.controls.role">
         <option value="student">Student</option>
         <option value="teacher">Teacher</option>
         <option value="employee">Employee</option>
@@ -97,32 +126,17 @@
   <fieldset>
     <legend>How did you find us?</legend>
     <div class="control">
-      <input
-        type="checkbox"
-        id="google"
-        name="acquisition"
-        value="google"
-      />
+      <input type="checkbox" id="google" name="acquisition" value="google" />
       <label for="google">Google</label>
     </div>
 
     <div class="control">
-      <input
-        type="checkbox"
-        id="friend"
-        name="acquisition"
-        value="friend"
-      />
+      <input type="checkbox" id="friend" name="acquisition" value="friend" />
       <label for="friend">Referred by friend</label>
     </div>
 
     <div class="control">
-      <input
-        type="checkbox"
-        id="other"
-        name="acquisition"
-        value="other"
-      />
+      <input type="checkbox" id="other" name="acquisition" value="other" />
       <label for="other">Other</label>
     </div>
   </fieldset>
@@ -134,6 +148,7 @@
           type="checkbox"
           id="terms-and-conditions"
           name="terms"
+          [formControl]="form.controls.agree"
         />
         I agree to the terms and conditions
       </label>
@@ -141,7 +156,9 @@
   </div>
 
   <p class="form-actions">
-    <button type="reset" class="button button-flat">Reset</button>
+    <button type="reset" class="button button-flat" (click)="onReset()">
+      Reset
+    </button>
     <button type="submit" class="button">Sign up</button>
   </p>
 </form>
