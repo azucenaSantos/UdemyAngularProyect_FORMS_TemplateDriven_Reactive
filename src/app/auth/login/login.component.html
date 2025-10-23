@@ -1,17 +1,56 @@
-<form>
+<form #form="ngForm" (ngSubmit)="onSubmit(form)">
+  <!--template variable para el form, acceso para acceder-->
+  <!--con el ngForm decimos que el template variable será de tipo NgForm-->
+  <!--a la funcion de envio se le pasa los datos del template variable del form-->
   <h2>Login</h2>
 
   <div class="control-row">
     <div class="control no-margin">
       <label for="email">Email</label>
-      <input id="email" type="email" />
+      <input
+        id="email"
+        type="email"
+        name="email"
+        ngModel
+        required
+        email
+        #emailCtrl="ngModel"
+      />
+      <!--#nombre -> variable para controlar el input-->
+      <!--la directiva ngModel registra un input/textarea/select... en concreto-->
+      <!--para usar ngModel necesito que el input sea cual sea su tipo
+      tenga un name(si no dará error); es el *nombre que angular recogerá para registrar este input*-->
     </div>
 
     <div class="control no-margin">
       <label for="password">Password</label>
-      <input id="password" type="password" />
+      <input
+        id="password"
+        type="password"
+        name="password"
+        ngModel
+        required
+        minlength="6"
+        #passwordCtrl="ngModel"
+      />
+      <!--name + ngModel -> input registrado en angular (con el nombre de password
+      )-->
+      <!--en angular tenemos directivas de validacion como el required, mail, minlenght, pattern... que ayuda a las validaciones
+      de campos-->
+      <!--OJO: aunque pongamos estas validaciones, no le decimos a angular que prevenga el envio del form
+      por lo tanto sin esa prevencion al enviar sigue "guardando datos" (se ven los console log no se evita eso aunque
+      no se cumplan las validaciones de las directivas)-->
     </div>
 
     <button class="button">Login</button>
   </div>
+
+  <!--mostramos un error en caso de que el form sea inválido y se haya tocado por el form-->
+  @if (emailCtrl.touched && emailCtrl.dirty && emailCtrl.invalid) {
+  <p class="control-error">Invalid email address entered.</p>
+  } @if (passwordCtrl.touched && passwordCtrl.dirty && passwordCtrl.invalid) {
+  <p class="control-error">
+    Invalid password entered - must be at least 6 characters long.
+  </p>
+  }
 </form>
